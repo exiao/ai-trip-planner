@@ -9,9 +9,8 @@ A minimal tutorial example showing how to build an AI-powered web application wi
 - Creating a web interface without frameworks
 - Connecting frontend and backend
 
-## Quick Start (2 minutes)
+## Quick Start (1 minute)
 
-### Option 1: Automatic Setup (Fastest)
 ```bash
 git clone https://github.com/yourusername/simple-ai-trip-planner.git
 cd simple-ai-trip-planner
@@ -21,8 +20,9 @@ python backend.py
 ```
 Open http://localhost:8000 - Done! 🎉
 
-### Option 2: Manual Setup with uv
+## Troubleshooting
 
+If you are having trouble installing uv, a package manager for installing python libraries
 #### 1. Install uv (One-time)
 ```bash
 # macOS/Linux
