@@ -1,11 +1,12 @@
 # Simple AI Trip Planner
 
-A minimal tutorial example showing how to build an AI-powered web application with just 200 lines of code.
+A minimal tutorial example showing how to build an AI-powered web application with just 200 lines of code, now with **real-time streaming responses**!
 
 ## What You'll Learn
 
 - How to call AI models via OpenRouter API
 - Building a simple REST API with FastAPI  
+- **Streaming responses** with Server-Sent Events (SSE)
 - Creating a web interface without frameworks
 - Connecting frontend and backend
 
@@ -18,7 +19,7 @@ cd simple-ai-trip-planner
 source .venv/bin/activate
 python backend/backend.py
 ```
-Open http://localhost:8000 - Done! 🎉
+Open http://localhost:7000 - Done! 🎉
 
 ### Local development
 After initial setup, you only need:
@@ -27,9 +28,23 @@ source .venv/bin/activate
 python backend/backend.py
 ```
 
+**Using a custom port** (if 7000 is busy):
+```bash
+python backend/backend.py 7001
+```
+
 Anytime you want to install new packages, add it to requirements.txt and then run:
 ```bash
 uv pip install -r requirements.txt
+```
+
+### Running Tests
+```bash
+# Run tests
+pytest backend/tests/ -v
+
+# Quick tests only (skip streaming)
+pytest backend/tests/ -k "not stream"
 ```
 
 ## Project Structure
@@ -37,7 +52,9 @@ uv pip install -r requirements.txt
 simple-ai-trip-planner/
 ├── .venv/           # Virtual environment (created by uv)
 ├── backend/         # Backend application folder
-│   └── backend.py   # FastAPI server + OpenRouter integration
+│   ├── backend.py   # FastAPI server + OpenRouter integration
+│   └── tests/       # Test suite
+│       └── test_api.py  # API endpoint tests
 ├── frontend/        # Frontend application folder
 │   └── index.html   # Web interface
 ├── specs/           # Specifications and documentation
@@ -54,23 +71,35 @@ simple-ai-trip-planner/
 
 This application consists of just 3 main components:
 
-1. **`backend/backend.py`** (130 lines) - A FastAPI server that:
+1. **`backend/backend.py`** (~300 lines) - A FastAPI server that:
    - Receives trip planning requests
    - Calls OpenRouter API to generate itineraries (using free models!)
-   - Returns the results as JSON
+   - Returns results as JSON or **streams them in real-time**
+   - Supports custom port configuration
 
-2. **`frontend/index.html`** (240 lines) - A clean, minimal web page that:
+2. **`frontend/index.html`** (~600 lines) - A clean, minimal web page that:
    - Simple form for trip preferences (destination, duration, budget, interests)
+   - **Streaming mode toggle** - watch your itinerary being written in real-time!
    - Clean, modern UI with system fonts and minimal styling
    - Full markdown rendering for beautiful itineraries
 
-3. **`requirements.txt`** (4 lines) - Just the essentials:
+3. **`requirements.txt`** (6 lines) - Just the essentials:
    - FastAPI for the web server
    - Uvicorn to run the server
    - Requests for API calls
    - python-dotenv for environment variables
+   - pytest for testing
+   - httpx for test client
 
-## Example Request
+## Features
+
+### 🚀 Real-Time Streaming
+- **Toggle streaming mode** with a simple checkbox
+- Watch your itinerary being generated word-by-word
+- Immediate feedback as content arrives
+- Progressive markdown rendering
+
+### 📝 Example Request
 
 When you enter:
 - **Destination**: Tokyo
@@ -116,12 +145,12 @@ cp .env.example .env
 python backend/backend.py
 ```
 
-## Common Issues
+### Common Issues
 
 | Issue | Solution |
 |-------|----------|
 | `uv: command not found` | Add to PATH: `export PATH="$HOME/.cargo/bin:$PATH"` |
 | `No module named 'fastapi'` | Activate venv: `source .venv/bin/activate` |
-| `Port 8000 already in use` | Kill process: `lsof -ti:8000 \| xargs kill -9` |
+| `Port 7000 already in use` | Kill process: `lsof -ti:7000 \| xargs kill -9` or use different port: `python backend/backend.py 7001` |
 | API key error | Get free key at https://openrouter.ai/keys |
 | Rate limit reached | Wait 1 minute (free tier limit) or add credits |
