@@ -6,191 +6,113 @@
     <title>Simple AI Trip Planner</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        /* Design Philosophy: Simplicity Through Reduction
-           Every element serves a purpose. Nothing is arbitrary. */
-        
-        :root {
-            /* Sophisticated, slightly desaturated color palette */
-            --primary: #4F46E5;      /* Indigo - trust and exploration */
-            --primary-hover: #4338CA;
-            --primary-light: #EEF2FF;
-            --text-primary: #111827;
-            --text-secondary: #6B7280;
-            --background: #FFFFFF;
-            --surface: #F9FAFB;
-            --border: #E5E7EB;
-            --success: #059669;
-            --error: #DC2626;
-            
-            /* Typographic scale using major third (1.25) */
-            --font-xs: 0.75rem;    /* 12px */
-            --font-sm: 0.875rem;   /* 14px */
-            --font-base: 1rem;     /* 16px */
-            --font-lg: 1.25rem;    /* 20px */
-            --font-xl: 1.563rem;   /* 25px */
-            --font-2xl: 1.953rem;  /* 31px */
-            
-            /* Spatial rhythm */
-            --space-1: 0.25rem;
-            --space-2: 0.5rem;
-            --space-3: 0.75rem;
-            --space-4: 1rem;
-            --space-5: 1.25rem;
-            --space-6: 1.5rem;
-            --space-8: 2rem;
-            --space-10: 2.5rem;
-            --space-12: 3rem;
-            
-            /* Motion timing - natural physics */
-            --timing-quick: 150ms;
-            --timing-normal: 250ms;
-            --timing-slow: 400ms;
-            --easing: cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         
-        /* Typography: San Francisco/system fonts for maximum legibility */
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            font-size: var(--font-base);
             line-height: 1.6;
-            color: var(--text-primary);
-            background: var(--background);
+            color: #111827;
+            background: #ffffff;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
         
-        /* Container: Content-focused design with breathing room */
         .app {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: var(--space-8) var(--space-4);
+            padding: 2rem 1rem;
         }
         
         .container {
             width: 100%;
             max-width: 640px;
-            animation: fadeIn var(--timing-slow) var(--easing);
         }
         
-        /* Header: Clear hierarchy with purposeful typography */
+        /* Header */
         header {
             text-align: center;
-            margin-bottom: var(--space-10);
+            margin-bottom: 2.5rem;
         }
         
         .logo {
-            font-size: var(--font-2xl);
-            margin-bottom: var(--space-2);
-            transition: transform var(--timing-normal) var(--easing);
-        }
-        
-        .logo:hover {
-            transform: scale(1.05);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
         }
         
         h1 {
-            font-size: var(--font-2xl);
+            font-size: 2rem;
             font-weight: 700;
-            letter-spacing: -0.025em;
-            margin-bottom: var(--space-3);
-            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            color: #111827;
         }
         
         .tagline {
-            font-size: var(--font-lg);
-            color: var(--text-secondary);
-            font-weight: 400;
+            font-size: 1.25rem;
+            color: #6b7280;
         }
         
-        /* Form: Material honesty with subtle depth */
+        /* Form Card */
         .card {
-            background: var(--background);
+            background: #ffffff;
             border-radius: 12px;
-            padding: var(--space-8);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 
-                        0 1px 2px rgba(0, 0, 0, 0.06);
-            transition: box-shadow var(--timing-normal) var(--easing);
-        }
-        
-        .card:hover {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 
-                        0 2px 4px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
         }
         
         .form-group {
-            margin-bottom: var(--space-6);
+            margin-bottom: 1.5rem;
         }
         
         label {
             display: block;
-            font-size: var(--font-sm);
+            font-size: 0.875rem;
             font-weight: 500;
-            color: var(--text-primary);
-            margin-bottom: var(--space-2);
-            transition: color var(--timing-quick) var(--easing);
+            color: #111827;
+            margin-bottom: 0.5rem;
         }
         
-        /* Inputs: Direct manipulation with immediate feedback */
         input, select {
             width: 100%;
-            padding: var(--space-3) var(--space-4);
-            font-size: var(--font-base);
-            font-family: inherit;
-            border: 1.5px solid var(--border);
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            border: 1.5px solid #e5e7eb;
             border-radius: 8px;
-            background: var(--background);
-            transition: all var(--timing-quick) var(--easing);
-            -webkit-appearance: none;
-        }
-        
-        input:hover, select:hover {
-            border-color: #D1D5DB;
+            background: #ffffff;
+            transition: border-color 0.2s;
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         input::placeholder {
-            color: #9CA3AF;
+            color: #9ca3af;
         }
         
-        /* Button: Purpose-driven with clear affordance */
+        /* Button */
         button {
             width: 100%;
-            padding: var(--space-4) var(--space-6);
-            font-size: var(--font-base);
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
             font-weight: 600;
-            font-family: inherit;
             color: white;
-            background: var(--primary);
+            background: #4f46e5;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            transition: all var(--timing-quick) var(--easing);
-            transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: background-color 0.2s;
         }
         
         button:hover:not(:disabled) {
-            background: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        
-        button:active:not(:disabled) {
-            transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            background: #4338ca;
         }
         
         button:disabled {
@@ -198,171 +120,125 @@
             cursor: not-allowed;
         }
         
-        /* Status: Purposeful color communication */
+        /* Status and Results */
         .status {
-            margin-top: var(--space-4);
-            padding: var(--space-4);
+            padding: 1rem;
             border-radius: 8px;
-            font-size: var(--font-sm);
+            font-size: 0.875rem;
             text-align: center;
-            animation: slideUp var(--timing-normal) var(--easing);
+            margin-top: 1rem;
             display: none;
-        }
-        
-        .status.loading {
-            background: var(--primary-light);
-            color: var(--primary);
         }
         
         .status.error {
-            background: #FEF2F2;
-            color: var(--error);
+            background: #fef2f2;
+            color: #dc2626;
         }
         
-        /* Result: Content-focused with clear hierarchy */
         .result {
-            margin-top: var(--space-8);
-            padding: var(--space-8);
-            background: var(--surface);
+            margin-top: 2rem;
+            padding: 2rem;
+            background: #f9fafb;
             border-radius: 12px;
-            animation: fadeIn var(--timing-slow) var(--easing);
             display: none;
         }
         
-        /* Markdown styles: Typographic excellence */
+        /* Markdown Styles */
         .result h1 {
-            font-size: var(--font-xl);
-            margin-bottom: var(--space-6);
-            padding-bottom: var(--space-3);
-            border-bottom: 2px solid var(--border);
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
         }
         
         .result h2 {
-            font-size: var(--font-lg);
-            margin-top: var(--space-8);
-            margin-bottom: var(--space-4);
-            color: var(--primary);
+            font-size: 1.25rem;
+            margin: 2rem 0 1rem;
+            color: #4f46e5;
         }
         
         .result h3 {
-            font-size: var(--font-base);
+            font-size: 1rem;
             font-weight: 600;
-            margin-top: var(--space-6);
-            margin-bottom: var(--space-3);
+            margin: 1.5rem 0 0.75rem;
         }
         
         .result p {
-            margin-bottom: var(--space-4);
+            margin-bottom: 1rem;
             line-height: 1.7;
         }
         
         .result ul, .result ol {
-            margin-left: var(--space-6);
-            margin-bottom: var(--space-4);
+            margin: 0 0 1rem 1.5rem;
         }
         
         .result li {
-            margin-bottom: var(--space-2);
+            margin-bottom: 0.5rem;
             line-height: 1.7;
         }
         
         .result strong {
             font-weight: 600;
-            color: var(--text-primary);
+            color: #111827;
         }
         
         .result blockquote {
-            margin: var(--space-6) 0;
-            padding: var(--space-4);
-            background: var(--background);
-            border-left: 4px solid var(--primary);
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: #ffffff;
+            border-left: 4px solid #4f46e5;
             border-radius: 4px;
             font-style: italic;
         }
         
         .result table {
             width: 100%;
-            margin: var(--space-6) 0;
+            margin: 1.5rem 0;
             border-collapse: collapse;
-            font-size: var(--font-sm);
+            font-size: 0.875rem;
         }
         
         .result th, .result td {
-            padding: var(--space-3);
+            padding: 0.75rem;
             text-align: left;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid #e5e7eb;
         }
         
         .result th {
-            background: var(--background);
+            background: #ffffff;
             font-weight: 600;
         }
         
-        .result hr {
-            margin: var(--space-8) 0;
-            border: none;
-            border-top: 1px solid var(--border);
-        }
-        
-        /* Loading spinner: Purpose-built, not generic */
+        /* Loading Spinner */
         .spinner {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 2px solid var(--primary-light);
-            border-top-color: var(--primary);
+            border: 2px solid rgba(79, 70, 229, 0.2);
+            border-top-color: #4f46e5;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-right: var(--space-2);
+            margin-right: 0.5rem;
             vertical-align: middle;
-        }
-        
-        /* Animations: Natural physics */
-        @keyframes fadeIn {
-            from { 
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes slideUp {
-            from { 
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to { 
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
         
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
         
-        /* Responsive: Adapts gracefully */
+        /* Responsive */
         @media (max-width: 640px) {
             .app {
-                padding: var(--space-4) var(--space-3);
+                padding: 1rem 0.75rem;
             }
             
             .card {
-                padding: var(--space-6);
+                padding: 1.5rem;
             }
             
             h1 {
-                font-size: var(--font-xl);
+                font-size: 1.5rem;
             }
-        }
-        
-        /* Focus visible for accessibility */
-        *:focus-visible {
-            outline: 2px solid var(--primary);
-            outline-offset: 2px;
         }
     </style>
 </head>
@@ -372,11 +248,11 @@
             <header>
                 <div class="logo">✈️</div>
                 <h1>Simple AI Trip Planner</h1>
-                <p class="tagline">Craft your perfect journey with intelligent recommendations</p>
+                <p class="tagline">Craft your perfect journey with AI</p>
             </header>
             
             <div class="card">
-                <form id="tripForm" onsubmit="return false;">
+                <form id="tripForm">
                     <div class="form-group">
                         <label for="destination">Where would you like to explore?</label>
                         <input 
@@ -384,7 +260,6 @@
                             id="destination" 
                             placeholder="Paris, Tokyo, New York..."
                             required
-                            autocomplete="off"
                         >
                     </div>
                     
@@ -395,7 +270,6 @@
                             id="duration" 
                             placeholder="5 days, 1 week, 10 days..."
                             required
-                            autocomplete="off"
                         >
                     </div>
                     
@@ -415,7 +289,6 @@
                             id="interests" 
                             placeholder="Food, history, art, nature, nightlife..."
                             value="food, culture, sightseeing"
-                            autocomplete="off"
                         >
                     </div>
                     
@@ -425,24 +298,20 @@
                 </form>
                 
                 <div id="status" class="status"></div>
-                <div id="result" class="result"></div>
             </div>
+            
+            <div id="result" class="result"></div>
         </div>
     </div>
 
     <script>
-        // Configure marked for beautiful markdown rendering
         marked.setOptions({
             breaks: true,
             gfm: true,
-            headerIds: false,
-            mangle: false
+            headerIds: false
         });
 
-        // Form submission with proper event handling
-        document.getElementById('tripForm').addEventListener('submit', planTrip);
-        
-        async function planTrip(e) {
+        document.getElementById('tripForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const destination = document.getElementById('destination').value.trim();
@@ -456,59 +325,68 @@
             const status = document.getElementById('status');
             const result = document.getElementById('result');
             
-            // Immediate feedback
+            // Show loading state
             button.disabled = true;
             button.innerHTML = '<span class="spinner"></span>Creating your journey...';
-            status.className = 'status loading';
-            status.textContent = 'Crafting personalized recommendations...';
-            status.style.display = 'block';
-            result.style.display = 'none';
+            status.style.display = 'none';
+            result.style.display = 'block';
+            result.innerHTML = '<div id="streamContent"></div>';
+            
+            let streamContent = '';
+            const streamDiv = document.getElementById('streamContent');
             
             try {
-                const response = await fetch('http://localhost:8000/api/plan-trip', {
+                const response = await fetch('http://localhost:7000/api/plan-trip-stream', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ destination, duration, budget, interests })
                 });
                 
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Smooth transition to results
-                    result.innerHTML = marked.parse(data.itinerary);
-                    result.style.display = 'block';
-                    status.style.display = 'none';
-                    
-                    // Scroll to results smoothly
-                    result.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else {
-                    status.className = 'status error';
-                    status.textContent = data.error || 'Unable to generate itinerary';
+                if (!response.ok) {
+                    throw new Error(`Server error (${response.status})`);
                 }
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+                
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop() || '';
+                    
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const dataStr = line.slice(6);
+                            if (dataStr === '[DONE]') break;
+                            
+                            try {
+                                const data = JSON.parse(dataStr);
+                                if (data.content) {
+                                    streamContent += data.content;
+                                    streamDiv.innerHTML = marked.parse(streamContent);
+                                } else if (data.error) {
+                                    throw new Error(data.error);
+                                }
+                            } catch (e) {
+                                if (!(e instanceof SyntaxError)) throw e;
+                            }
+                        }
+                    }
+                }
+                
             } catch (error) {
                 status.className = 'status error';
-                status.textContent = 'Connection error. Please ensure the server is running.';
+                status.textContent = error.message || 'Connection error. Please ensure the server is running.';
+                status.style.display = 'block';
+                result.style.display = 'none';
             } finally {
                 button.disabled = false;
                 button.innerHTML = 'Create My Itinerary';
             }
-        }
-        
-        // Micro-interaction: Label animation on focus
-        document.querySelectorAll('input, select').forEach(field => {
-            field.addEventListener('focus', () => {
-                const label = field.previousElementSibling;
-                if (label && label.tagName === 'LABEL') {
-                    label.style.color = 'var(--primary)';
-                }
-            });
-            
-            field.addEventListener('blur', () => {
-                const label = field.previousElementSibling;
-                if (label && label.tagName === 'LABEL') {
-                    label.style.color = 'var(--text-primary)';
-                }
-            });
         });
     </script>
 </body>
