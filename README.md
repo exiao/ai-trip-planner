@@ -4,60 +4,85 @@ A minimal tutorial example showing how to build an AI-powered web application wi
 
 ## What You'll Learn
 
-- How to call OpenAI's API from Python
+- How to call AI models via OpenRouter API
 - Building a simple REST API with FastAPI  
 - Creating a web interface without frameworks
 - Connecting frontend and backend
 
 ## Quick Start (2 minutes)
 
-### 1. Clone and Install
-
+### Option 1: Automatic Setup (Fastest)
 ```bash
 git clone https://github.com/yourusername/simple-ai-trip-planner.git
 cd simple-ai-trip-planner
-pip install -r requirements.txt
+./setup.sh
+source .venv/bin/activate
+python backend.py
+```
+Open http://localhost:8000 - Done! 🎉
+
+### Option 2: Manual Setup with uv
+
+#### 1. Install uv (One-time)
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Or with Homebrew
+brew install uv
 ```
 
-### 2. Set Up Your API Key
+#### 2. Setup Project
+```bash
+git clone https://github.com/yourusername/simple-ai-trip-planner.git
+cd simple-ai-trip-planner
 
+# Create virtual environment and install dependencies
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv pip install -r requirements.txt
+```
+
+#### 3. Configure API Key
 ```bash
 cp .env.example .env
-# Edit .env and add your OpenAI API key
+# Edit .env and add your OpenRouter API key
 ```
 
-Get your API key from: https://platform.openai.com/api-keys
+Get your FREE API key from: https://openrouter.ai/keys
 
-### 3. Run the Application
-
+#### 4. Run the Application
 ```bash
 python backend.py
 ```
 
-### 4. Open in Browser
+Open http://localhost:8000 in your browser!
 
-Go to http://localhost:8000
-
-That's it! Start planning trips with AI.
+### Daily Usage
+After initial setup, you only need:
+```bash
+source .venv/bin/activate
+python backend.py
+```
 
 ## How It Works
 
 This application consists of just 3 files:
 
-1. **`backend.py`** (100 lines) - A FastAPI server that:
+1. **`backend.py`** (130 lines) - A FastAPI server that:
    - Receives trip planning requests
-   - Calls OpenAI to generate itineraries
+   - Calls OpenRouter API to generate itineraries (using free models!)
    - Returns the results as JSON
 
-2. **`frontend.html`** (150 lines) - A simple web page that:
-   - Collects trip preferences (destination, duration, budget, interests)
-   - Sends requests to the backend
-   - Displays the generated itinerary
+2. **`frontend.html`** (240 lines) - A clean, minimal web page that:
+   - Simple form for trip preferences (destination, duration, budget, interests)
+   - Clean, modern UI with system fonts and minimal styling
+   - Full markdown rendering for beautiful itineraries
 
 3. **`requirements.txt`** (4 lines) - Just the essentials:
    - FastAPI for the web server
    - Uvicorn to run the server
-   - OpenAI for AI capabilities
+   - Requests for API calls
    - python-dotenv for environment variables
 
 ## Example Request
@@ -79,23 +104,32 @@ The AI will generate a complete day-by-day itinerary with:
 
 Want to extend this project? Try:
 
-1. **Different AI Models**: Switch to GPT-4 for better quality or Claude for different style
+1. **Different AI Models**: OpenRouter gives you access to GPT-4, Claude, Gemini, Llama, and more!
 2. **Save Trips**: Add a database to store generated itineraries
 3. **User Accounts**: Let users save and share their trips
 4. **Weather Integration**: Add real-time weather data
 5. **Maps**: Integrate Google Maps to show locations
 6. **Export**: Add PDF or email export functionality
 
-## Code Structure
+## Project Structure
 
 ```
 simple-ai-trip-planner/
-├── backend.py       # FastAPI server + OpenAI integration
-├── frontend.html    # Web interface
-├── requirements.txt # Python dependencies
-├── .env.example    # Environment variable template
+├── .venv/           # Virtual environment (created by uv)
+├── backend.py       # FastAPI server + OpenRouter integration
+├── frontend.html    # Web interface  
+├── requirements.txt # Python dependencies (just 4!)
+├── .env            # Your API keys (create from .env.example)
+├── .env.example    # Template for environment variables
+├── setup.sh        # Automated setup script
 └── README.md       # This file
 ```
+
+### File Descriptions
+- **backend.py** - Complete backend server in ~130 lines
+- **frontend.html** - Self-contained UI with inline CSS/JS (~150 lines)
+- **requirements.txt** - Minimal dependencies: fastapi, uvicorn, requests, python-dotenv
+- **setup.sh** - One-command setup that installs everything
 
 ## API Endpoints
 
@@ -108,22 +142,89 @@ simple-ai-trip-planner/
 
 - **Python 3.8+** - Backend language
 - **FastAPI** - Modern, fast web framework
-- **OpenAI API** - For generating intelligent itineraries
+- **OpenRouter API** - Smart routing to multiple AI models with automatic fallback
 - **HTML/CSS/JavaScript** - Simple frontend (no frameworks!)
+- **uv** - Fast Python package manager (10-100x faster than pip!)
+
+### OpenRouter Model Routing
+The app uses OpenRouter's [model routing](https://openrouter.ai/docs/features/model-routing) feature:
+- Automatically tries multiple models if one is unavailable
+- Uses pipe syntax: `model1|model2|model3` for fallback chain
+- Default: OpenAI GPT OSS 20B → Google Gemini → Meta Llama
+
+## Local Deployment Details
+
+### Why uv?
+- **10-100x faster** than pip
+- **Better dependency resolution**
+- **No configuration needed**
+- **Drop-in replacement** for pip
+
+### Managing Dependencies
+```bash
+# Add a new package
+uv pip install package-name
+uv pip freeze > requirements.txt
+
+# Update all packages
+uv pip install -r requirements.txt --upgrade
+
+# Show installed packages
+uv pip list
+```
+
+### Advanced Options
+```bash
+# Run with auto-reload (for development)
+uvicorn backend:app --reload
+
+# Run on different port
+uvicorn backend:app --port 3000
+
+# Run with multiple workers (production)
+uvicorn backend:app --workers 4
+```
 
 ## Troubleshooting
 
+**"uv: command not found"**
+```bash
+# Add uv to PATH
+export PATH="$HOME/.cargo/bin:$PATH"
+# Add to ~/.bashrc or ~/.zshrc to make permanent
+```
+
+**"No module named 'fastapi'"**
+```bash
+# Make sure virtual environment is activated
+source .venv/bin/activate
+# Reinstall dependencies
+uv pip install -r requirements.txt
+```
+
+**"Port 8000 already in use"**
+```bash
+# Kill the process using port 8000
+lsof -ti:8000 | xargs kill -9
+# Or use a different port
+python backend.py  # Then edit backend.py to change port
+```
+
 **"API key not configured"**
 - Make sure you've created a `.env` file (not `.env.example`)
+- Get your free key at https://openrouter.ai/keys
 - Check that your API key is correct
 
-**"Failed to connect to server"**
-- Ensure the backend is running (`python backend.py`)
-- Check that port 8000 is not in use
+**"No allowed providers are available" or "Free tier limit reached"**
+- The app uses OpenRouter's automatic model routing to find available models
+- Default: OpenAI GPT OSS 20B (free) with automatic fallback to other free models
+- If all fail, wait a few minutes (free tier has rate limits)
+- Or add credits to your OpenRouter account for unlimited access
 
-**Empty or poor quality responses**
-- Try using GPT-4 instead of GPT-3.5 for better quality
-- Make your prompts more specific
+**"Empty or poor quality responses"**
+- The app uses OpenAI's free 20B model by default (good quality for free!)
+- OpenRouter automatically falls back to other models if needed
+- For premium quality: Add credits and change to GPT-4, Claude, etc.
 
 ## Learning Resources
 
