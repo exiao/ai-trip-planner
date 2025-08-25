@@ -62,9 +62,10 @@ class TripResponse(BaseModel):
 @app.get("/")
 async def serve_frontend():
     """Serve the frontend HTML file"""
-    if os.path.exists("frontend.html"):
-        return FileResponse("frontend.html")
-    return {"message": "Frontend not found. Please create frontend.html"}
+    frontend_path = os.path.join(os.path.dirname(__file__), "..", "frontend", "index.html")
+    if os.path.exists(frontend_path):
+        return FileResponse(frontend_path)
+    return {"message": "Frontend not found. Please create frontend/index.html"}
 
 @app.post("/api/plan-trip", response_model=TripResponse)
 async def plan_trip(request: TripRequest):
