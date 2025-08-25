@@ -1,137 +1,124 @@
-# Simple AI Trip Planner - Codebase Overview
+# Simple AI Trip Planner
 
-## Purpose
-This is a minimal tutorial repository demonstrating how to build an AI-powered web application with just 250 lines of code. Perfect for workshops, bootcamps, or developers learning to integrate AI into web applications.
+A minimal tutorial example showing how to build an AI-powered web application with just 200 lines of code.
 
-## Architecture (Simplified)
+## What You'll Learn
 
-### Files (Just 5!)
-```
-simple-ai-trip-planner/
-├── backend.py       # FastAPI server (100 lines)
-├── frontend.html    # Web interface (150 lines)  
-├── requirements.txt # Dependencies (4 lines)
-├── .env.example    # API key template
-├── README.md       # User documentation
-└── CLAUDE.md       # This file
-```
+- How to call AI models via OpenRouter API
+- Building a simple REST API with FastAPI  
+- Creating a web interface without frameworks
+- Connecting frontend and backend
 
-### How It Works
-1. User enters trip preferences in `frontend.html`
-2. JavaScript sends POST request to backend
-3. `backend.py` calls OpenAI API with structured prompt
-4. OpenAI returns generated itinerary
-5. Frontend displays formatted results
-
-### Tech Stack
-- **Backend**: FastAPI + OpenAI Python SDK
-- **Frontend**: Vanilla HTML/CSS/JavaScript
-- **AI**: OpenAI GPT-3.5/GPT-4
-- **No frameworks, no build tools, no complexity!**
-
-## API Endpoints
-
-- `GET /` - Serves frontend.html
-- `POST /api/plan-trip` - Generates itinerary
-  - Input: `{destination, duration, budget, interests}`
-  - Output: `{success, itinerary, error}`
-- `GET /health` - Health check
-- `GET /docs` - Swagger documentation
-
-## Quick Start
+## Quick Start (1 minute)
 
 ```bash
-# Install
-pip install -r requirements.txt
-
-# Configure
-cp .env.example .env
-# Add your OpenAI API key to .env
-
-# Run
+git clone https://github.com/yourusername/simple-ai-trip-planner.git
+cd simple-ai-trip-planner
+./setup.sh
+source .venv/bin/activate
 python backend.py
+```
+Open http://localhost:8000 - Done! 🎉
 
-# Use
-Open http://localhost:8000
+### Local development
+After initial setup, you only need:
+```bash
+source .venv/bin/activate
+python backend.py
 ```
 
-## Key Learning Points
-
-This tutorial demonstrates:
-1. **Minimal API Design** - Just one endpoint needed
-2. **Prompt Engineering** - Structured prompts for consistent output
-3. **Error Handling** - Graceful failures with user-friendly messages
-4. **CORS Setup** - Allowing frontend-backend communication
-5. **Environment Variables** - Secure API key management
-6. **Async Python** - Using FastAPI's async capabilities
-7. **No Build Process** - Direct HTML file serving
-
-## Customization Guide
-
-### To Use Different AI Providers
-
-**For Anthropic Claude:**
-```python
-# Replace openai with anthropic
-import anthropic
-client = anthropic.Client(api_key=os.getenv("ANTHROPIC_API_KEY"))
+Anytime you want to install new packages, add it to requirements.txt and then run:
+```bash
+uv pip install -r requirements.txt
 ```
 
-**For Groq (Faster):**
-```python
-# Use Groq's OpenAI-compatible endpoint
-from groq import Groq
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+## Project Structure
+```
+simple-ai-trip-planner/
+├── .venv/           # Virtual environment (created by uv)
+├── backend.py       # FastAPI server + OpenRouter integration
+├── frontend.html    # Web interface  
+├── requirements.txt # Python dependencies (just 4!)
+├── .env            # Your API keys (create from .env.example)
+├── .env.example    # Template for environment variables
+├── setup.sh        # Automated setup script
+├── DESIGN.md       # Design guidelines to build higher quality UIs 
+├── CLAUDE.md       # An introduction to the codebase for Claude
+└── README.md       # An introduction to the codebase for readers
 ```
 
-### To Add Features
+## How It Works
 
-1. **Database**: Add SQLite to store trips
-2. **Authentication**: Add simple session-based auth
-3. **Export**: Add PDF generation with reportlab
-4. **Caching**: Cache responses to reduce API calls
-5. **Rate Limiting**: Prevent API abuse
+This application consists of just 3 files:
 
-## Teaching Notes
+1. **`backend.py`** (130 lines) - A FastAPI server that:
+   - Receives trip planning requests
+   - Calls OpenRouter API to generate itineraries (using free models!)
+   - Returns the results as JSON
 
-### Workshop Structure (2 hours)
-1. **Introduction** (15 min) - What we're building
-2. **Setup** (15 min) - Environment and API keys
-3. **Backend** (30 min) - Build FastAPI server together
-4. **Frontend** (30 min) - Create HTML interface
-5. **Integration** (20 min) - Connect frontend to backend
-6. **Customization** (10 min) - Modify prompts, add features
+2. **`frontend.html`** (240 lines) - A clean, minimal web page that:
+   - Simple form for trip preferences (destination, duration, budget, interests)
+   - Clean, modern UI with system fonts and minimal styling
+   - Full markdown rendering for beautiful itineraries
 
-### Common Student Questions
+3. **`requirements.txt`** (4 lines) - Just the essentials:
+   - FastAPI for the web server
+   - Uvicorn to run the server
+   - Requests for API calls
+   - python-dotenv for environment variables
 
-**Q: Why not use React/Vue?**
-A: This tutorial focuses on AI integration, not frontend frameworks. Vanilla JS keeps it simple.
+## Example Request
 
-**Q: Can this scale to production?**
-A: Yes, with additions: database, caching, authentication, rate limiting, monitoring.
+When you enter:
+- **Destination**: Tokyo
+- **Duration**: 5 days
+- **Budget**: Moderate
+- **Interests**: Food, culture, technology
 
-**Q: How much do API calls cost?**
-A: GPT-3.5: ~$0.002 per trip. GPT-4: ~$0.02 per trip.
+The AI will generate a complete day-by-day itinerary with:
+- Morning, afternoon, and evening activities
+- Restaurant recommendations
+- Estimated costs
+- Transportation tips
+- Local experiences
 
-## Debugging Tips
+## Customization Ideas
 
-1. **Check API Key**: Most errors are from missing/invalid keys
-2. **CORS Issues**: Ensure backend allows frontend origin
-3. **Port Conflicts**: Change port if 8000 is in use
-4. **Python Version**: Requires Python 3.8+
+Want to extend this project? Try:
 
-## From Tutorial to Production
+1. **Different AI Models**: OpenRouter gives you access to GPT-4, Claude, Gemini, Llama, and more!
+2. **Save Trips**: Add a database to store generated itineraries
+3. **User Accounts**: Let users save and share their trips
+4. **Weather Integration**: Add real-time weather data
+5. **Maps**: Integrate Google Maps to show locations
+6. **Export**: Add PDF or email export functionality
 
-To make this production-ready, add:
-- **Database**: PostgreSQL for persistence
-- **Authentication**: OAuth or JWT
-- **Monitoring**: Sentry for errors, analytics
-- **Caching**: Redis for response caching
-- **Queue**: Celery for background tasks
-- **Deployment**: Docker + cloud provider
-- **CDN**: For static assets
-- **Rate Limiting**: Protect against abuse
+## Troubleshooting
 
-## License
+If setup.sh doesn't work, run these commands manually:
 
-MIT - Free for educational use
+```bash
+# 1. Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Setup environment
+uv venv && source .venv/bin/activate
+uv pip install -r requirements.txt
+
+# 3. Configure API key
+cp .env.example .env
+# Edit .env and add your OpenRouter API key from https://openrouter.ai/keys
+
+# 4. Run
+python backend.py
+```
+
+## Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| `uv: command not found` | Add to PATH: `export PATH="$HOME/.cargo/bin:$PATH"` |
+| `No module named 'fastapi'` | Activate venv: `source .venv/bin/activate` |
+| `Port 8000 already in use` | Kill process: `lsof -ti:8000 \| xargs kill -9` |
+| API key error | Get free key at https://openrouter.ai/keys |
+| Rate limit reached | Wait 1 minute (free tier limit) or add credits |
