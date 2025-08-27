@@ -16,7 +16,7 @@ git clone https://github.com/yourusername/simple-ai-trip-planner.git
 cd simple-ai-trip-planner
 ./setup.sh
 source .venv/bin/activate
-python backend.py
+python backend/backend.py
 ```
 Open http://localhost:8000 - Done! 🎉
 
@@ -24,7 +24,7 @@ Open http://localhost:8000 - Done! 🎉
 After initial setup, you only need:
 ```bash
 source .venv/bin/activate
-python backend.py
+python backend/backend.py
 ```
 
 Anytime you want to install new packages, add it to requirements.txt and then run:
@@ -36,8 +36,11 @@ uv pip install -r requirements.txt
 ```
 simple-ai-trip-planner/
 ├── .venv/           # Virtual environment (created by uv)
-├── backend.py       # FastAPI server + OpenRouter integration
-├── frontend.html    # Web interface  
+├── backend/         # Backend application folder
+│   └── backend.py   # FastAPI server + OpenRouter integration
+├── frontend/        # Frontend application folder
+│   └── index.html   # Web interface
+├── specs/           # Specifications and documentation
 ├── requirements.txt # Python dependencies (just 4!)
 ├── .env            # Your API keys (create from .env.example)
 ├── .env.example    # Template for environment variables
@@ -49,14 +52,14 @@ simple-ai-trip-planner/
 
 ## How It Works
 
-This application consists of just 3 files:
+This application consists of just 3 main components:
 
-1. **`backend.py`** (130 lines) - A FastAPI server that:
+1. **`backend/backend.py`** (130 lines) - A FastAPI server that:
    - Receives trip planning requests
    - Calls OpenRouter API to generate itineraries (using free models!)
    - Returns the results as JSON
 
-2. **`frontend.html`** (240 lines) - A clean, minimal web page that:
+2. **`frontend/index.html`** (240 lines) - A clean, minimal web page that:
    - Simple form for trip preferences (destination, duration, budget, interests)
    - Clean, modern UI with system fonts and minimal styling
    - Full markdown rendering for beautiful itineraries
@@ -110,7 +113,7 @@ cp .env.example .env
 # Edit .env and add your OpenRouter API key from https://openrouter.ai/keys
 
 # 4. Run
-python backend.py
+python backend/backend.py
 ```
 
 ### Common Issues
