@@ -34,16 +34,32 @@ ERROR_MESSAGES = {
 try:
     import phoenix as px
     from phoenix.otel import register
+    import socket
     
-    if not os.getenv("PHOENIX_API_KEY"):
+    # Check if Phoenix is already running on port 6006
+    def is_phoenix_running():
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(1)
+            result = sock.connect_ex(('localhost', 6006))
+            sock.close()
+            return result == 0
+        except:
+            return False
+    
+    # Only launch Phoenix if it's not already running and no API key is set
+    if not os.getenv("PHOENIX_API_KEY") and not is_phoenix_running():
         px.launch_app()
+        print("🔭 Phoenix UI launched at http://localhost:6006")
+    elif is_phoenix_running():
+        print("🔭 Phoenix UI already running at http://localhost:6006")
     
     tracer_provider = register(project_name="ai-trip-planner", auto_instrument=True)
     tracer = tracer_provider.get_tracer(__name__)
     TRACING_ENABLED = True
 except ImportError:
     TRACING_ENABLED = False
-    print("Phoenix not installed, running without tracing")
+    print("ℹ️  Phoenix not installed, running without tracing")
 
 # Initialize FastAPI app
 app = FastAPI(title="Simple AI Trip Planner")
