@@ -41,6 +41,13 @@ simple-ai-trip-planner/
 ├── frontend/        # Frontend application folder
 │   └── index.html   # Web interface
 ├── specs/           # Specifications and documentation
+│   └── EXAMPLE.md   # Example API documentation
+├── tests/           # Test suite
+│   ├── __init__.py  # Package initialization
+│   ├── conftest.py  # pytest configuration and shared fixtures
+│   ├── test_api.py  # API, backend, and helper tests (13 tests)
+│   ├── test_phoenix.py # Phoenix observability tests (7 tests)
+│   └── README.md    # Test documentation
 ├── requirements.txt # Python dependencies (just 4!)
 ├── .env            # Your API keys (create from .env.example)
 ├── .env.example    # Template for environment variables
@@ -116,6 +123,45 @@ cp .env.example .env
 python backend/backend.py
 ```
 
+## Testing
+
+Run the test suite to ensure everything works:
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# Run specific tests
+pytest tests/test_api.py -v
+pytest tests/test_phoenix.py -v
+```
+
+The test suite includes:
+- **20 comprehensive tests** covering all functionality
+- **API tests** (13 tests): Backend, endpoints, error handling
+- **Phoenix observability tests** (7 tests): Tracing and monitoring
+- **Mocked external calls** - no real API requests needed
+- **Fast execution** - complete test suite runs in under 4 seconds
+
+## Contributing
+
+When contributing to this project, please ensure:
+
+1. **All tests pass**: Run `pytest tests/ -v` before submitting
+2. **Code is formatted**: Use consistent Python formatting
+3. **New features include tests**: Add tests for any new functionality
+4. **Documentation is updated**: Update README.md and relevant docs
+
+### PR Requirements
+
+Before submitting a pull request:
+
+- [ ] All existing tests pass (`pytest tests/`)
+- [ ] New or updated tests are included for changes
+- [ ] Code follows existing style and formatting
+- [ ] Documentation is updated if needed
+- [ ] No linting errors or warnings
+
 ### Common Issues
 
 | Issue | Solution |
@@ -125,3 +171,4 @@ python backend/backend.py
 | `Port 8000 already in use` | Kill process: `lsof -ti:8000 \| xargs kill -9` |
 | API key error | Get free key at https://openrouter.ai/keys |
 | Rate limit reached | Wait 1 minute (free tier limit) or add credits |
+| Tests failing | Ensure you're in the venv: `source .venv/bin/activate` |
