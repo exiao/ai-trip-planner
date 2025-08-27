@@ -38,13 +38,14 @@ if not OPENROUTER_API_KEY:
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 
 # Model routing: https://openrouter.ai/docs/features/model-routing
-# Primary model with automatic fallbacks using OpenRouter's routing
-DEFAULT_MODEL = "openai/gpt-oss-20b:free"  # OpenAI's free 20B model
+# Primary model configuration - using gpt-oss-20b sorted by throughput
+PRIMARY_MODEL = "openai/gpt-oss-20b"  # OpenAI's 20B model (removed :free for better throughput)
 
-# Fallback chain using OpenRouter's pipe syntax for automatic failover
-FALLBACK_MODEL = "openai/gpt-oss-20b:free|google/gemini-flash-1.5-8b|meta-llama/llama-3.2-3b-instruct:free"
-
-# Alternative: Use "openrouter/auto" to automatically pick the best available model
+# Fallback models sorted by throughput preference
+THROUGHPUT_OPTIMIZED_MODELS = [
+    "openai/gpt-oss-120b",           # Primary choice for throughput
+    "google/gemini-flash-1.5-8b",   # Fast Google model
+]
 
 # Request model
 class TripRequest(BaseModel):
@@ -108,14 +109,14 @@ async def plan_trip(request: TripRequest):
             "X-Title": "Simple AI Trip Planner"  # Optional
         }
         
-        # Use OpenRouter's model routing for automatic fallback
-        # The pipe syntax (model1|model2|model3) tells OpenRouter to try each model in order
+        # Use OpenRouter's model routing optimized for throughput
+        # Primary model with fallback chain sorted by throughput
         data = {
-            "model": FALLBACK_MODEL,  # Uses automatic fallback chain
+            "model": PRIMARY_MODEL,  # Primary throughput-optimized model
             "messages": [
                 {
                     "role": "system", 
-                    "content": "You are a helpful travel planner assistant. Provide practical, realistic itineraries, with a maximum of 100 words."
+                    "content": "You are a helpful travel planner assistant. Provide practical, realistic itineraries with a maximum of 50 words. Do not include reasoning blocks, thinking sections, or explanatory text - only provide the final itinerary content."
                 },
                 {
                     "role": "user", 
@@ -124,13 +125,10 @@ async def plan_trip(request: TripRequest):
             ],
             "max_tokens": 8000,
             "temperature": 0.7,
-            # Optional: Add route preference for better routing
-            "route": "fallback",  # Tells OpenRouter to use fallback routing
-            "models": [  # Optional: Explicit model preferences
-                "openai/gpt-oss-20b:free",
-                "google/gemini-flash-1.5-8b",
-                "meta-llama/llama-3.2-3b-instruct:free"
-            ]
+            # Use models parameter for automatic fallback sorted by throughput
+            "models": THROUGHPUT_OPTIMIZED_MODELS,
+            # Optional: Add route preference for faster response
+            "route": "fallback"
         }
         
         response = requests.post(
