@@ -12,9 +12,13 @@ if ! command -v uv &> /dev/null; then
     echo ""
 fi
 
-# Create virtual environment
-echo "🔧 Creating virtual environment..."
-uv venv
+# Create virtual environment if it doesn't exist
+if [ ! -d ".venv" ]; then
+    echo "🔧 Creating virtual environment..."
+    uv venv
+else
+    echo "✅ Virtual environment already exists, skipping creation"
+fi
 
 # Activate virtual environment
 echo "🔧 Activating virtual environment..."
@@ -35,10 +39,32 @@ if [ ! -f ".env" ]; then
 fi
 
 echo ""
-echo "✅ Setup complete!"
+echo "🎉 Setup complete!"
 echo ""
-echo "To start the application:"
-echo "  source .venv/bin/activate"
-echo "  python backend/backend.py"
-echo ""
-echo "Then open http://localhost:8000 in your browser"
+
+# Check if API key is configured
+if [ -f .env ] && grep -q "^OPENROUTER_API_KEY=" .env && ! grep -q "^OPENROUTER_API_KEY=$" .env; then
+    echo "✅ API key found in .env file"
+    echo "🚀 Starting the server..."
+    echo ""
+    echo "Frontend: http://localhost:8000"
+    echo "API docs: http://localhost:8000/docs"  
+    echo "Phoenix UI: http://localhost:6006 (if enabled)"
+    echo ""
+    echo "Press Ctrl+C to stop the server"
+    echo ""
+    
+    # Start server (virtual environment is already activated)
+    python backend/backend.py
+else
+    echo "⚠️  Please add your OpenRouter API key to .env file first:"
+    echo "   OPENROUTER_API_KEY=your_key_here"
+    echo ""
+    echo "Get a free key at: https://openrouter.ai/keys"
+    echo ""
+    echo "Then run:"
+    echo "   source .venv/bin/activate"
+    echo "   python backend/backend.py" 
+    echo ""
+    echo "Or run ./setup.sh again after adding the API key"
+fi
