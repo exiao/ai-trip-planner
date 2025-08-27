@@ -1,4 +1,16 @@
+# Core dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 requests==2.31.0
 python-dotenv==1.0.0
+
+# HTTP client (compatible version for tests)
+httpx<0.28
+
+# Observability (optional - backend will work without these)
+arize-phoenix>=4.29.0
+openinference-instrumentation-openai
+
+# Testing
+pytest>=7.0.0
+pytest-mock>=3.10.0

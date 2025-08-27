@@ -1,10 +1,9 @@
 """
 Simple AI Trip Planner Backend
 A minimal example of using LLMs to build a travel planning API
-Using OpenRouter for access to multiple AI models with a single API
 """
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -16,49 +15,114 @@ import json
 # Load environment variables
 load_dotenv()
 
+# Configuration
+CONFIG = {
+    "api_url": "https://openrouter.ai/api/v1",
+    "model": "openai/gpt-oss-20b",
+    "fallback_models": ["openai/gpt-oss-20b", "google/gemini-flash-1.5-8b"],
+    "max_tokens": 2000,
+    "temperature": 0.7,
+}
+
+ERROR_MESSAGES = {
+    "credit": "Free tier limit reached. Please wait a few minutes or add credits to your OpenRouter account.",
+    "api_key": "Invalid API key. Please check your OPENROUTER_API_KEY in .env file.",
+    "no_key": "API key not configured. Please set OPENROUTER_API_KEY in .env file",
+}
+
+# Initialize Phoenix observability (simplified)
+try:
+    import phoenix as px
+    from phoenix.otel import register
+    
+    if not os.getenv("PHOENIX_API_KEY"):
+        px.launch_app()
+    
+    tracer_provider = register(project_name="ai-trip-planner", auto_instrument=True)
+    tracer = tracer_provider.get_tracer(__name__)
+    TRACING_ENABLED = True
+except ImportError:
+    TRACING_ENABLED = False
+    print("Phoenix not installed, running without tracing")
+
 # Initialize FastAPI app
 app = FastAPI(title="Simple AI Trip Planner")
 
-# Enable CORS for frontend
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify your frontend URL
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configure OpenRouter
+# Get API key
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 if not OPENROUTER_API_KEY:
-    print("Warning: OPENROUTER_API_KEY not set in environment variables")
+    print("Warning: OPENROUTER_API_KEY not set")
     print("Get your free API key at: https://openrouter.ai/keys")
 
-# OpenRouter configuration
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-
-# Model routing: https://openrouter.ai/docs/features/model-routing
-# Primary model configuration - using gpt-oss-20b sorted by throughput
-PRIMARY_MODEL = "openai/gpt-oss-20b"  # OpenAI's 20B model (removed :free for better throughput)
-
-# Fallback models sorted by throughput preference
-THROUGHPUT_OPTIMIZED_MODELS = [
-    "openai/gpt-oss-120b",           # Primary choice for throughput
-    "google/gemini-flash-1.5-8b",   # Fast Google model
-]
-
-# Request model
 class TripRequest(BaseModel):
     destination: str
     duration: str
     budget: str = "moderate"
     interests: str = "general sightseeing"
 
-# Response model
 class TripResponse(BaseModel):
     success: bool
     itinerary: str = None
     error: str = None
+
+def set_trace_attributes(span, request, response_data=None, error=None):
+    """Helper to set trace attributes"""
+    if not span:
+        return
+    
+    span.set_attribute("llm.request.model", CONFIG["model"])
+    span.set_attribute("trip.destination", request.destination)
+    span.set_attribute("trip.duration", request.duration)
+    span.set_attribute("trip.budget", request.budget)
+    span.set_attribute("trip.interests", request.interests)
+    
+    if response_data:
+        span.set_attribute("llm.response.model", response_data.get('model', 'unknown'))
+        span.set_attribute("llm.usage.total_tokens", response_data.get('usage', {}).get('total_tokens', 0))
+    
+    if error:
+        span.set_attribute("error", True)
+        span.set_attribute("error.message", str(error))
+
+def get_error_message(error_text):
+    """Get user-friendly error message"""
+    error_lower = error_text.lower()
+    if "credit" in error_lower or "balance" in error_lower:
+        return ERROR_MESSAGES["credit"]
+    elif "api_key" in error_lower:
+        return ERROR_MESSAGES["api_key"]
+    else:
+        return error_text
+
+def create_api_request(request: TripRequest):
+    """Create OpenRouter API request"""
+    prompt = f"""Create a {request.duration} trip itinerary for {request.destination}.
+Budget: {request.budget}
+Interests: {request.interests}
+
+Provide a practical day-by-day plan with activities, restaurants, and estimated costs.
+Format with markdown headers and bullet points."""
+
+    return {
+        "model": CONFIG["model"],
+        "messages": [
+            {"role": "system", "content": "You are a travel planner. Provide concise, practical itineraries."},
+            {"role": "user", "content": prompt}
+        ],
+        "models": CONFIG["fallback_models"],
+        "max_tokens": CONFIG["max_tokens"],
+        "temperature": CONFIG["temperature"],
+        "route": "fallback"
+    }
 
 @app.get("/")
 async def serve_frontend():
@@ -70,99 +134,64 @@ async def serve_frontend():
 
 @app.post("/api/plan-trip", response_model=TripResponse)
 async def plan_trip(request: TripRequest):
-    """
-    Generate a trip itinerary using OpenRouter
-    """
-    # Build the prompt
-    prompt = f"""
-    Create a comprehensive {request.duration} trip itinerary for {request.destination}.
+    """Generate a trip itinerary using OpenRouter"""
     
-    Budget level: {request.budget}
-    Interests: {request.interests}
+    if not OPENROUTER_API_KEY:
+        return TripResponse(success=False, error=ERROR_MESSAGES["no_key"])
     
-    Please provide a detailed day-by-day plan that includes:
-    - Morning, afternoon, and evening activities with specific locations
-    - Restaurant recommendations with cuisine type and price ranges
-    - Detailed costs for activities, meals, and transportation
-    - Transportation tips and routes between locations
-    - Unique local experiences and cultural insights for each day
-    - Tips for saving money and avoiding tourist traps
-    - Important cultural etiquette and customs to know
-    
-    Format the response using proper Markdown:
-    - Use # for the main title
-    - Use ## for each day header
-    - Use ### for Morning/Afternoon/Evening sections
-    - Use **bold** for important information
-    - Use bullet points for activities and recommendations
-    - Include tables for budget breakdowns if helpful
-    
-    Be comprehensive and detailed - provide as much helpful information as possible.
-    """
+    # Start tracing span
+    span = None
+    if TRACING_ENABLED:
+        span = tracer.start_span("plan_trip")
+        span.__enter__()
+        set_trace_attributes(span, request)
     
     try:
-        # Call OpenRouter API
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "Content-Type": "application/json",
-            "HTTP-Referer": "http://localhost:8000",  # Optional but recommended
-            "X-Title": "Simple AI Trip Planner"  # Optional
         }
         
-        # Use OpenRouter's model routing optimized for throughput
-        # Primary model with fallback chain sorted by throughput
-        data = {
-            "model": PRIMARY_MODEL,  # Primary throughput-optimized model
-            "messages": [
-                {
-                    "role": "system", 
-                    "content": "You are a helpful travel planner assistant. Provide practical, realistic itineraries with a maximum of 50 words. Do not include reasoning blocks, thinking sections, or explanatory text - only provide the final itinerary content."
-                },
-                {
-                    "role": "user", 
-                    "content": prompt
-                }
-            ],
-            "max_tokens": 8000,
-            "temperature": 0.7,
-            # Use models parameter for automatic fallback sorted by throughput
-            "models": THROUGHPUT_OPTIMIZED_MODELS,
-            # Optional: Add route preference for faster response
-            "route": "fallback"
-        }
+        data = create_api_request(request)
         
         response = requests.post(
-            f"{OPENROUTER_BASE_URL}/chat/completions",
+            f"{CONFIG['api_url']}/chat/completions",
             headers=headers,
             json=data
         )
         
+        if span:
+            span.set_attribute("http.status_code", response.status_code)
+        
         if response.status_code == 200:
             result = response.json()
             itinerary = result['choices'][0]['message']['content']
-            # Check which model was actually used (OpenRouter returns this in headers)
-            model_used = result.get('model', 'unknown')
-            print(f"Successfully generated itinerary using model: {model_used}")
+            
+            if span:
+                set_trace_attributes(span, request, response_data=result)
+            
             return TripResponse(success=True, itinerary=itinerary)
         else:
             error_data = response.json() if response.headers.get('content-type') == 'application/json' else {}
             error_msg = error_data.get('error', {}).get('message', f"API Error: {response.status_code}")
+            friendly_error = get_error_message(error_msg)
             
-            # Provide helpful error messages
-            if "credit" in error_msg.lower() or "balance" in error_msg.lower():
-                error_msg = "Free tier limit reached. Please wait a few minutes or add credits to your OpenRouter account."
-            elif "api_key" in error_msg.lower():
-                error_msg = "Invalid API key. Please check your OPENROUTER_API_KEY in .env file."
+            if span:
+                set_trace_attributes(span, request, error=friendly_error)
             
-            return TripResponse(success=False, error=error_msg)
-        
+            return TripResponse(success=False, error=friendly_error)
+    
     except Exception as e:
-        # Handle errors gracefully
-        error_message = str(e)
-        if "OPENROUTER_API_KEY" in error_message or not OPENROUTER_API_KEY:
-            error_message = "API key not configured. Please set OPENROUTER_API_KEY in .env file"
+        error_msg = ERROR_MESSAGES["no_key"] if "OPENROUTER_API_KEY" in str(e) else str(e)
         
-        return TripResponse(success=False, error=error_message)
+        if span:
+            set_trace_attributes(span, request, error=error_msg)
+        
+        return TripResponse(success=False, error=error_msg)
+    
+    finally:
+        if span:
+            span.__exit__(None, None, None)
 
 @app.get("/health")
 async def health_check():
@@ -173,6 +202,6 @@ async def health_check():
 if __name__ == "__main__":
     import uvicorn
     print("Starting Simple AI Trip Planner...")
-    print("Frontend will be available at: http://localhost:8000")
-    print("API documentation at: http://localhost:8000/docs")
+    print("Frontend: http://localhost:8000")
+    print("API docs: http://localhost:8000/docs")
     uvicorn.run(app, host="localhost", port=8000)
