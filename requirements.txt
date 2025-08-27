@@ -10,6 +10,7 @@ httpx<0.28
 # Observability (optional - backend will work without these)
 arize-phoenix>=4.29.0
 openinference-instrumentation-openai
+openai>=1.69.0
 
 # Testing
 pytest>=7.0.0

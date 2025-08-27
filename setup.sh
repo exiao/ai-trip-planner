@@ -28,6 +28,61 @@ source .venv/bin/activate
 echo "📚 Installing dependencies with uv..."
 uv pip install -r requirements.txt
 
+# Check for Phoenix observability (optional)
+echo "🔍 Checking Phoenix observability setup..."
+if python -c "import phoenix" 2>/dev/null; then
+    echo "✅ Phoenix is available for observability"
+    
+    # Kill any existing Phoenix processes on both HTTP and gRPC ports
+    echo "   Checking for existing Phoenix processes..."
+    for port in 6006 4317 4318; do
+        if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+            echo "   Killing process on port $port..."
+            lsof -ti:$port | xargs kill -9 2>/dev/null || true
+        fi
+    done
+    sleep 1
+    
+    echo "🚀 Starting Phoenix UI in background..."
+    # Set environment variables to use alternative gRPC port
+    export PHOENIX_GRPC_PORT=4318
+    export PHOENIX_PORT=6006
+    
+    # Start Phoenix with error handling
+    nohup python -m phoenix.server.main serve > phoenix.log 2>&1 &
+    PHOENIX_PID=$!
+    sleep 3
+    
+    # Check if Phoenix actually started successfully
+    if lsof -Pi :6006 -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo "✅ Phoenix UI started successfully at http://localhost:6006"
+    else
+        echo "⚠️  Phoenix failed to start properly"
+        
+        # Kill the failed process if it's still running
+        kill $PHOENIX_PID 2>/dev/null || true
+        
+        # Provide helpful error messages based on log content
+        if [ -f phoenix.log ]; then
+            if grep -q "Failed to bind\|RuntimeError.*Failed to bind" phoenix.log; then
+                echo "   Error: Port binding failed - another service is using required ports"
+                echo "   Try: sudo lsof -i :4317 -i :4318 to find conflicting processes"
+            elif grep -q "DependencyConflict\|openai.*None" phoenix.log; then
+                echo "   Error: Missing OpenAI dependency"
+                echo "   Installing missing dependency..."
+                uv pip install "openai>=1.69.0" || echo "   Failed to install openai - Phoenix observability disabled"
+            else
+                echo "   Phoenix will run without observability UI (check phoenix.log for details)"
+            fi
+        fi
+        echo "   The main application will still work normally"
+    fi
+else
+    echo "ℹ️  Phoenix not installed (observability disabled)"
+    echo "   To enable: uv pip install arize-phoenix"
+fi
+echo ""
+
 # Create .env from example if it doesn't exist
 if [ ! -f ".env" ]; then
     echo "📝 Creating .env file from template..."
