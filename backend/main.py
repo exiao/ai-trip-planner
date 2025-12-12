@@ -722,6 +722,8 @@ def itinerary_agent(state: TripState) -> TripState:
         "Research: {research}",
         "Budget: {budget}",
         "Local: {local}",
+        "",
+        "Keep it under 100 words.",
     ]
     if user_input:
         prompt_parts.append("User input: {user_input}")

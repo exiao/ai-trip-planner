@@ -69,6 +69,33 @@ cd ..
 
 ## Testing
 
+### Running the Test Suite
+
+The backend includes a comprehensive test suite covering all components. Run tests using the Makefile:
+
+```bash
+make test              # Run all tests with verbose output
+make test-verbose      # Run tests with extra verbose output
+make test-coverage     # Run tests with coverage report (HTML + terminal)
+```
+
+Or run pytest directly:
+```bash
+cd backend
+pytest tests/ -v                    # Run all tests
+pytest tests/test_api.py -v         # Run API tests only
+pytest tests/ -k "test_retriever"   # Run specific test file/pattern
+pytest tests/ --cov=main --cov-report=html  # With coverage
+```
+
+### Test Coverage
+
+The test suite includes:
+- **Unit Tests**: Tools, RAG retriever, agents (all functions tested with mocks)
+- **Integration Tests**: LangGraph workflow, API endpoints
+- **Coverage Goals**: 90%+ coverage across all components
+- **Fast Execution**: All tests run in <5 seconds (no external API calls)
+
 ### Quick API Test
 ```bash
 curl -X POST http://localhost:8000/plan-trip \
